@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# lazytex - a script for automating some LaTex tasks when editing in vim
+#
+# To be invoked as follows in vim's command prompt:
+#
+# :!~/bin/lazytex %
+#
+# Expects one parameter, which is the .tex file to be processed (this can be
+# the % register in vim
+#
+# Automates compiling with a latex engine (default lualatex, but can be changed
+# with command line switches), compiling the bibliography if one exists
+# (default biber/biblatex) and if a bibliography is compiled, then the pdf is
+# compiled one more time.  Other tasks will be added as needed.  A command line
+# switch to open the pdf with a viewer is provided.  A config file can specify
+# default latex engine, and pdf viewer (and maybe biblio engine later)
+
+# Get working directory, assign
+
+# Compile for the first time using specified engine
+
+# Look for a .bib file
+# If found, run biber, and recompile
+
+# If specified, open the file with a viewer
+
+# Command line options for other latex engines
