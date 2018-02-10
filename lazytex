@@ -1,28 +1,97 @@
 #!/bin/bash
 
-# lazytex - a script for automating some LaTex tasks when editing in vim
+# lazytex - a script for automating some LaTeX tasks when editing in vim
 #
 # To be invoked as follows in vim's command prompt:
 #
 # :!~/bin/lazytex %
 #
 # Expects one parameter, which is the .tex file to be processed (this can be
-# the % register in vim
+# the % register in vim)
 #
 # Automates compiling with a latex engine (default lualatex, but can be changed
 # with command line switches), compiling the bibliography if one exists
 # (default biber/biblatex) and if a bibliography is compiled, then the pdf is
 # compiled one more time.  Other tasks will be added as needed.  A command line
-# switch to open the pdf with a viewer is provided.  A config file can specify
-# default latex engine, and pdf viewer (and maybe biblio engine later)
+# switch to open the pdf with a viewer is provided.
 
-# Get working directory, assign
+# Constants
+LATEX_ENGINE=lualatex
+PDF_VIEWER=apvlv
+BIBLIO_ENGINE=biber
+
+# Argument default values
+biblio_present=0
+invoke_viewer=0
+verbose=0
+
+log () {
+  if [[ $verbose -eq 1 ]]; then
+    echo "$@"
+  fi
+}
+
+latex_compile () {
+  
+  if ! $LATEX_ENGINE --output-directory=$TARGET_DIRECTORY $FILENAME;  then
+    echo "Latex engine error"
+    exit 1
+  fi
+}
+
+biblio_compile () {
+  if ! $BIBLIO_ENGINE --output-directory=$TARGET_DIRECTORY $TARGET_NAME; then
+    echo "Biblio engine error"
+    exit 2
+  fi
+}
+
+view_output_pdf () {
+  $PDF_VIEWER $TARGET_PDF & 
+}
+
+while [[ $# -gt 1 ]]; do
+  opt="$1"
+#  shift;
+  case "$opt" in
+    "-v"|"--verbose"	) verbose=1; shift;;
+    "-l"|"--lualatex"	) LATEX_ENGINE="lualatex"; shift;;
+    "-p"|"--pdflatex"	) LATEX_ENGINE="pdflatex"; shift;;
+    "-x"|"--xelatex"	) LATEX_ENGINE="xelatex"; shift;;
+    "-i"|"--inspect"	) invoke_viewer=1; shift;;
+    *			) echo "ERROR: Invalid option: \""$opt"\"" >&2
+    			  exit 3;;
+  esac
+done
+
+# Filename without extension and target directory
+FILENAME=$1
+TARGET=`basename $FILENAME`
+TARGET_NAME="${TARGET%.*}"
+TARGET_PDF="${FILENAME%.*}.pdf"
+TARGET_DIRECTORY=`dirname $FILENAME`
+
+log ""
+log "Verbosity is $verbose"
+log "Latex engine is $LATEX_ENGINE"
+log "Default viewer is $PDF_VIEWER"
+log "Viewer is invoked: $invoke_viewer"
+log ""
+log "Filename is $FILENAME"
+log "Working directory is $PWD"
+log "Target name is $TARGET_NAME"
+log "Target directory is $TARGET_DIRECTORY"
+
 
 # Compile for the first time using specified engine
+latex_compile
 
-# Look for a .bib file
-# If found, run biber, and recompile
+# Look for a .bib file, run biber if found
+if [ -f $TARGET_DIRECTORY/*.bib ]; then
+  biblio_compile
+  latex_compile
+fi
 
-# If specified, open the file with a viewer
-
-# Command line options for other latex engines
+if [ $invoke_viewer -eq 1 ]; then
+  view_output_pdf
+fi
