@@ -32,18 +32,21 @@ log () {
 }
 
 latex_compile () {
-  
+  cd $TARGET_DIRECTORY
   if ! $LATEX_ENGINE --output-directory=$TARGET_DIRECTORY $FILENAME;  then
     echo "Latex engine error"
     exit 1
   fi
+  cd -
 }
 
 biblio_compile () {
+  cd $TARGET_DIRECTORY
   if ! $BIBLIO_ENGINE --output-directory=$TARGET_DIRECTORY $TARGET_NAME; then
     echo "Biblio engine error"
     exit 2
   fi
+  cd -
 }
 
 view_output_pdf () {
